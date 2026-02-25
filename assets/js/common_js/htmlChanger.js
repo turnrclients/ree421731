@@ -1,20 +1,129 @@
+// ==============Custom alert========================
+function injectCustomAlertCSS() {
+    if (document.getElementById('custom-alert-style')) return;
 
+    const style = document.createElement('style');
+    style.id = 'custom-alert-style';
+    style.innerHTML = `
+        .custom-alert-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99997;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
 
+        .custom-alert-backdrop.show {
+            opacity: 1;
+        }
 
+        .custom-alert-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%) scale(0.95);
+            opacity: 0;
+            z-index: 99998;
+            width: 100%;
+            max-width: 420px;
+            font-family: 'Quicksand', sans-serif;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+            pointer-events: none;
+        }
 
+        .custom-alert-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
 
+        .custom-alert-content {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            text-align: center;
+            padding: 30px 26px;
+        }
 
+        .custom-alert-message {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
 
+        .custom-alert-popup.success .custom-alert-message {
+            color: #28a745;
+        }
 
+        .custom-alert-popup.error .custom-alert-message {
+            color: #dc3545;
+        }
 
+        .custom-alert-ok-btn {
+            background: linear-gradient(135deg, #e39a4e, #fb1b1b);
+            color: #fff;
+            border: none;
+            padding: 10px 36px;
+            border-radius: 230px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
 
+        .custom-alert-ok-btn:hover {
+            opacity: 0.9;
+        }
 
+        body.custom-alert-open {
+            overflow: hidden;
+        }
+    `;
+    document.head.appendChild(style);
+}
 
+function showCustomAlertBox(type = 'error', message = 'Something went wrong', onOk) {
 
+    injectCustomAlertCSS();
 
+    // normalize type
+    type = (type === 'success') ? 'success' : 'error';
 
+    // fallback message safety
+    if (!message || message.trim() === '') {
+        message = 'Something went wrong';
+    }
 
+    const backdrop = document.createElement('div');
+    backdrop.className = 'custom-alert-backdrop show';
 
+    const popup = document.createElement('div');
+    popup.className = `custom-alert-popup ${type} show`;
+
+    popup.innerHTML = `
+        <div class="custom-alert-content">
+            <div class="custom-alert-message">${message}</div>
+            <button class="custom-alert-ok-btn">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(popup);
+    document.body.classList.add('custom-alert-open');
+
+    function close() {
+        backdrop.remove();
+        popup.remove();
+        document.body.classList.remove('custom-alert-open');
+        if (typeof onOk === 'function') onOk();
+    }
+
+    popup.querySelector('.custom-alert-ok-btn').onclick = close;
+    backdrop.onclick = close;
+}
+
+// =========================================================
 
 /* =========================================================
    CONFIG
@@ -51,7 +160,7 @@ function getStableClasses(el){
 Purpose: Calculates Jaccard similarity between two sets (0–1).
 Used to compare classes of two elements.
 Example: ["wrap","title"] vs ["wrap","subtitle"] → similarity = 0.33.
-*/ 
+*/
 
 function jaccard(aArr,bArr){
   const A=new Set((aArr||[]).filter(Boolean));
@@ -65,7 +174,7 @@ function jaccard(aArr,bArr){
 Purpose: Standard Levenshtein algorithm → measures text difference.
 similarity(a,b) returns 0–1 (1 = exact same text).
 Used when exact oldText not found → fuzzy matching.
-*/ 
+*/
 
 function levenshtein(a="",b=""){
   const m=a.length,n=b.length;
@@ -119,7 +228,7 @@ function ancestorOverlapScore(a,b){
 Purpose: Creates a :nth-of-type() path from root to element.
 Example: div:nth-of-type(2) > h2:nth-of-type(1).
 Used to uniquely identify positions of elements.
-*/ 
+*/
 function nthPath(fromEl, root){
   if(!fromEl || !root) return "";
   const parts=[];
@@ -171,7 +280,7 @@ MO: The MutationObserver instance.
 changeLog: Stores all captured changes (our dictionary).
 latestByKey: Prevents duplicate entries if the same text is edited multiple times.
 ELEMENT_ORIG: Maps each element → its original text before editing.
-*/ 
+*/
 let MO=null;
 const changeLog=[];
 const latestByKey=new Map();
@@ -190,7 +299,8 @@ function resolveEditableElementFromTextNode(node){
 function enableTextEditing(){
 
   if (localStorage.getItem('featureEnabled') === 'false') {
-    alert("Feature is disabled. Editing is not allowed.");
+    showCustomAlertBox('error', 'Feature is disabled. Editing is not allowed.');
+    console.log("Feature is disabled. Editing is not allowed.");
     return false;
   }
 
@@ -205,7 +315,8 @@ function enableTextEditing(){
     MO=new MutationObserver(onMutations);
     MO.observe(document.body,{characterData:true,characterDataOldValue:true,subtree:true});
   }
-  alert("Editing enabled. Start typing to edit text.");
+  showCustomAlertBox('success', 'Editing enabled. Start typing to edit text.');
+  console.log("Editing enabled. Start typing to edit text.");
 }
 
 function onMutations(records){
@@ -253,12 +364,19 @@ function onMutations(records){
 function updateOriginalHTMLWithTextChanges(){
 
   if (localStorage.getItem('featureEnabled') === 'false') {
-    alert("Feature is disabled");
+    showCustomAlertBox('error', 'Feature is disabled');
+    console.log("Feature is disabled");
     return false;
   }
 
-  if(!originalHTML){ alert("Original HTML not ready yet."); return; }
-  if(!changeLog.length){ alert("No text changes detected."); return; }
+  if(!originalHTML){
+    showCustomAlertBox('error', 'Original HTML not ready yet.');
+    console.log("Original HTML not ready yet.");
+    return; }
+  if(!changeLog.length){
+    showCustomAlertBox('error', 'No text changes detected.');
+    console.log("No text changes detected.");
+    return; }
 
   const parser=new DOMParser();
   const originalDoc=parser.parseFromString(originalHTML,"text/html");
@@ -319,7 +437,8 @@ function updateOriginalHTMLWithTextChanges(){
   console.log("=== Final Updated HTML ==="); console.log(cleanedOuterHTML);
   modifiedHTML = "<!DOCTYPE html>\n"+originalDoc.documentElement.outerHTML;
   console.log('changes made successfully');
-  alert('changes made successfully');
+  showCustomAlertBox('success', 'changes made successfully');
+  console.log('changes made successfully');
   // try{
   //   const blob=new Blob([cleanedOuterHTML],{type:"text/html"});
   //   const a=document.createElement("a");
@@ -379,16 +498,18 @@ function applyTextUpdate(target,newText){
 
 
 /* =========================================================
-   SAVE CHANGES TO GITHUB 
+   SAVE CHANGES TO GITHUB
 ========================================================= */
 async function saveAndPushChanges() {
   if (localStorage.getItem('featureEnabled') === 'load buttons') {
-    alert("Feature is disabled. Editing is not allowed.");
+    showCustomAlertBox('error', 'Feature is disabled. Editing is not allowed.');
+    console.log("Feature is disabled. Editing is not allowed.");
     return false;
   }
 
   if (!modifiedHTML) {
-    alert('Changes not detected, please save the changes.');
+    showCustomAlertBox('error', 'Changes not detected, please save the changes.');
+    console.log('Changes not detected, please save the changes.');
     return;
   }
 
@@ -439,15 +560,18 @@ async function saveAndPushChanges() {
     const result = await response.json();
 
     if (response.ok) {
-      alert("File successfully pushed to GitHub.");
+      showCustomAlertBox('success', 'File successfully pushed to GitHub.');
+      console.log("File successfully pushed to GitHub.");
       console.log("GitHub response:", result);
     } else {
-      alert("Failed to push. See console for details.");
+      showCustomAlertBox('error', 'Failed to push. See console for details.');
+      console.log("Failed to push. See console for details.");
       console.error("GitHub error:", result);
     }
   } catch (error) {
     console.error("GitHub upload failed:", error);
-    alert("Error pushing to GitHub.");
+    showCustomAlertBox('error', 'Error pushing to GitHub.');
+    console.log("Error pushing to GitHub.");
   }
 
   // Reset the modifiedHTML after operation is done
@@ -462,7 +586,8 @@ window.updateOriginalHTMLWithTextChanges=updateOriginalHTMLWithTextChanges;
 
 document.addEventListener('DOMContentLoaded', function () {
     if (localStorage.getItem('featureEnabled') === 'false') {
-    alert("Feature is disabled");
+    showCustomAlertBox('error', 'Feature is disabled');
+    console.log("Feature is disabled");
     return false;
   }
     createButtons();

@@ -684,73 +684,51 @@
 
 
 document.addEventListener("DOMContentLoaded", () => {
-
+    // All animation classes
     const animClasses = [
-        "anim-slide-up","anim-slide-down","anim-slide-left","anim-slide-right",
-        "anim-fade-in","anim-zoom-in","anim-rotate-in","anim-flip-in",
-        "anim-bounce-in","anim-blur-in","anim-stripe-reveal","anim-flip3d-left",
-        "anim-flip3d-right","anim-flip3d-up","anim-flip3d-down","anim-cube-rotate",
-        "anim-tilt-zoom","anim-depth-pop","anim-rotate-diagonal","anim-layer-slide",
+        "anim-slide-up",
+        "anim-slide-down",
+        "anim-slide-left",
+        "anim-slide-right",
+        "anim-fade-in",
+        "anim-zoom-in",
+        "anim-rotate-in",
+        "anim-flip-in",
+        "anim-bounce-in",
+        "anim-blur-in",
+        "anim-stripe-reveal",
+        "anim-flip3d-left",
+        "anim-flip3d-right",
+        "anim-flip3d-up",
+        "anim-flip3d-down",
+        "anim-cube-rotate",
+        "anim-tilt-zoom",
+        "anim-depth-pop",
+        "anim-rotate-diagonal",
+        "anim-layer-slide",
         "anim-spiral-zoom"
     ];
 
+    // Create a single selector string
     const selector = animClasses.map(cls => `.${cls}`).join(", ");
 
-    // IntersectionObserver for normal animations
+    // Select all elements with animation classes
+    const elements = document.querySelectorAll(selector);
+
+    // IntersectionObserver to trigger animations
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            const el = entry.target;
-
-            // If inside website-builder → NO ANIMATION, force opacity
-            if (el.closest(".website-builder")) {
-                el.style.setProperty("opacity", "1", "important");
-                return;
-            }
-
-            // Normal animation behavior
             if (entry.isIntersecting) {
-                el.classList.add("in-view");
+                entry.target.classList.add("in-view"); // Animate in
             } else {
-                el.classList.remove("in-view");
+                entry.target.classList.remove("in-view"); // Reset when out of view
             }
         });
-    }, { threshold: 0.2 });
+    }, { threshold: 0.2 }); // Trigger when 20% visible
 
-    // Observe animation elements (for initial load + dynamic content)
-    function observeAnimElements(root) {
-        const newEls = root.querySelectorAll(selector);
-        newEls.forEach(el => {
-
-            // If inside website-builder → disable animation + force visible
-            if (el.closest(".website-builder")) {
-                el.style.setProperty("opacity", "1", "important");
-                el.classList.remove("in-view"); // ensure no animation runs
-            }
-
-            observer.observe(el);
-        });
-    }
-
-    // Initial scan
-    observeAnimElements(document);
-
-    // Watch for dynamically added elements
-    new MutationObserver((mutations) => {
-        mutations.forEach(mutation => {
-            mutation.addedNodes.forEach(node => {
-                if (node.nodeType === 1) {
-                    observeAnimElements(node);
-                }
-            });
-        });
-    }).observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
+    elements.forEach(el => observer.observe(el));
 });
 
 
-
 // service-24
-// $(window).on("scroll", function () { var scrollTop = $(window).scrollTop(); var sectionOffset = $(".services-24-sticky-wrapper").offset().top; var sectionHeight = $(".services-24-sticky-wrapper").outerHeight(); var scrollPos = scrollTop - sectionOffset; var cards = $(".services-24-card"); var cardHeight = sectionHeight / cards.length; cards.each(function (i) { var start = i * cardHeight * 0.8; var end = start + cardHeight; if (scrollPos >= start && scrollPos < end) { $(this).addClass("active").css("z-index", 10 + i); } else { $(this).removeClass("active"); } }); });
+$(window).on("scroll", function () { var scrollTop = $(window).scrollTop(); var sectionOffset = $(".services-24-sticky-wrapper").offset().top; var sectionHeight = $(".services-24-sticky-wrapper").outerHeight(); var scrollPos = scrollTop - sectionOffset; var cards = $(".services-24-card"); var cardHeight = sectionHeight / cards.length; cards.each(function (i) { var start = i * cardHeight * 0.8; var end = start + cardHeight; if (scrollPos >= start && scrollPos < end) { $(this).addClass("active").css("z-index", 10 + i); } else { $(this).removeClass("active"); } }); });

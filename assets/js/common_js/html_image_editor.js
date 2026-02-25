@@ -1,3 +1,131 @@
+// ==============Custom alert========================
+function injectCustomAlertCSS() {
+    if (document.getElementById('custom-alert-style')) return;
+
+    const style = document.createElement('style');
+    style.id = 'custom-alert-style';
+    style.innerHTML = `
+        .custom-alert-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99997;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-alert-backdrop.show {
+            opacity: 1;
+        }
+
+        .custom-alert-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%) scale(0.95);
+            opacity: 0;
+            z-index: 99998;
+            width: 100%;
+            max-width: 420px;
+            font-family: 'Quicksand', sans-serif;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+            pointer-events: none;
+        }
+
+        .custom-alert-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .custom-alert-content {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            text-align: center;
+            padding: 30px 26px;
+        }
+
+        .custom-alert-message {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
+
+        .custom-alert-popup.success .custom-alert-message {
+            color: #28a745;
+        }
+
+        .custom-alert-popup.error .custom-alert-message {
+            color: #dc3545;
+        }
+
+        .custom-alert-ok-btn {
+            background: linear-gradient(135deg, #e39a4e, #fb1b1b);
+            color: #fff;
+            border: none;
+            padding: 10px 36px;
+            border-radius: 230px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-alert-ok-btn:hover {
+            opacity: 0.9;
+        }
+
+        body.custom-alert-open {
+            overflow: hidden;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function showCustomAlertBox(type = 'error', message = 'Something went wrong', onOk) {
+
+    injectCustomAlertCSS();
+
+    // normalize type
+    type = (type === 'success') ? 'success' : 'error';
+
+    // fallback message safety
+    if (!message || message.trim() === '') {
+        message = 'Something went wrong';
+    }
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'custom-alert-backdrop show';
+
+    const popup = document.createElement('div');
+    popup.className = `custom-alert-popup ${type} show`;
+
+    popup.innerHTML = `
+        <div class="custom-alert-content">
+            <div class="custom-alert-message">${message}</div>
+            <button class="custom-alert-ok-btn">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(popup);
+    document.body.classList.add('custom-alert-open');
+
+    function close() {
+        backdrop.remove();
+        popup.remove();
+        document.body.classList.remove('custom-alert-open');
+        if (typeof onOk === 'function') onOk();
+    }
+
+    popup.querySelector('.custom-alert-ok-btn').onclick = close;
+    backdrop.onclick = close;
+}
+
+// =========================================================
+
+
 /* =========================================================
    CONFIG
 ========================================================= */
@@ -95,16 +223,16 @@ const includeCache = new Map();
 
 fetch(window.location.href,{cache:"no-store"})
  .then(r=>r.text())
- .then(html=>{ 
-   originalHTML=html; 
-   DEBUG&&console.log(" Original HTML loaded."); 
+ .then(html=>{
+   originalHTML=html;
+   DEBUG&&console.log(" Original HTML loaded.");
  })
  .catch(err=>console.error(" Error loading original HTML:",err));
 
 /* =========================================================
    EDIT MODE + CHANGE CAPTURE
 ========================================================= */
-let changeLog=[]; 
+let changeLog=[];
 let latestByKey=new Map();
 const ELEMENT_ORIG = new WeakMap();
 const ELEMENT_LATEST = new WeakMap();
@@ -129,10 +257,10 @@ function resolveEditableElementFromTextNode(node){
 }
 
 function enableTextEditing(){
-  
+
   document.getElementById('updateHTMLBtn').style.display = 'block';
   document.getElementById('saveChangesBtn').style.display = 'block';
-  
+
   // Start text editing
   const sel='*:not(script):not(style):not(noscript):not(head):not(title):not(meta):not(link)';
   document.querySelectorAll(sel).forEach(el=>{
@@ -160,8 +288,8 @@ function enableTextEditing(){
     });
     window.MO.observe(document.body,{characterData:true,subtree:true});
   }
-
-  alert(" Editing enabled for all visible text elements.");
+  showCustomAlertBox('success', 'Editing enabled for all visible text elements.');
+  console.log(" Editing enabled for all visible text elements.");
 
   // End text editing
 
@@ -233,7 +361,10 @@ function applyTextUpdate(target,newText){
    UPDATE ORIGINAL FILES
 ========================================================= */
 async function updateOriginalHTMLWithTextChanges(){
-  if(!changeLog.length){ alert("No text changes detected."); return; }
+  if(!changeLog.length){
+    showCustomAlertBox('error', 'No text changes detected.');
+    console.log("No text changes detected.");
+    return; }
 
   const filesToUpdate = new Map();
   for(const ch of changeLog){
@@ -243,7 +374,7 @@ async function updateOriginalHTMLWithTextChanges(){
 
   for(const [file,changes] of filesToUpdate.entries()){
     DEBUG && console.log("Processing file:", file);
-    let htmlText = includeCache.has(file) 
+    let htmlText = includeCache.has(file)
       ? includeCache.get(file)
       : await fetch(file).then(r=>r.text()).catch(()=>originalHTML);
 
@@ -282,7 +413,8 @@ async function updateOriginalHTMLWithTextChanges(){
   }
 
   modifiedHTML=includeCache;
-  alert(" All changes applied locally. You can now download or push to GitHub.");
+  showCustomAlertBox('error', 'All changes applied locally. You can now download or push to GitHub.');
+  console.log(" All changes applied locally. You can now download or push to GitHub.");
 }
 
 /* =========================================================
@@ -299,13 +431,15 @@ function downloadFile(filename,text){
 
 function downloadAllUpdatedFiles(){
   if(!modifiedHTML || !(modifiedHTML instanceof Map)){
-    alert("No updated files to download.");
+    showCustomAlertBox('error', 'No updated files to download.');
+    console.log("No updated files to download.");
     return;
   }
   modifiedHTML.forEach((html,file)=>{
     downloadFile(file,html);
   });
-  alert(" All updated files downloaded successfully.");
+  showCustomAlertBox('error', 'All updated files downloaded successfully.');
+  console.log(" All updated files downloaded successfully.");
 }
 
 /* =========================================================
@@ -313,7 +447,8 @@ function downloadAllUpdatedFiles(){
 ========================================================= */
 async function saveAndPushChanges(){
   if(!modifiedHTML || !(modifiedHTML instanceof Map)){
-    alert("No modified files detected.");
+    showCustomAlertBox('error', 'No modified files detected.');
+    console.log("No modified files detected.");
     return;
   }
 
@@ -355,7 +490,8 @@ async function saveAndPushChanges(){
   }
 document.getElementById('rollback').style.display = 'block';
 
-  alert(" All modified files pushed to GitHub.");
+  showCustomAlertBox('success', 'All modified files pushed to GitHub.');
+  console.log(" All modified files pushed to GitHub.");
 }
 
 /* =========================================================
@@ -390,7 +526,7 @@ function createButtons(){
 
 function createButton(text,id,handler){
   const btn=document.createElement('button');
-  btn.textContent=text; 
+  btn.textContent=text;
   btn.id=id;
   btn.addEventListener('click',handler);
   btn.classList.add('button-29')

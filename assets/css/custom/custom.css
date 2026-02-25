@@ -180,7 +180,7 @@ width: 100%;
 }
 
 .sidebar-brand img {
-  width: 200px;
+  width: 170px;
   padding: 10px;
 }
 #wrapper.expanded {
@@ -1856,4 +1856,102 @@ background: #fff;
   color: #555;
   pointer-events: none;
   font-size: 16px;
+}
+
+
+
+/* Backdrop */
+.success-alert-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 99998;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.success-alert-backdrop.active {
+    opacity: 1;
+}
+
+/* Modal wrapper */
+.success-alert-modal {
+    margin-top: 100px;
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: all 0.35s ease;
+    z-index: 99999;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.success-alert-backdrop.active .success-alert-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Modal card */
+.success-alert-modal .modal-content {
+    border-radius: 30px;
+    border: none;
+    background: #fff;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+    overflow: hidden;
+}
+
+/* Body */
+.success-alert-modal .modal-body {
+    padding: 38px 32px 34px;
+    text-align: center;
+    position: relative;
+}
+
+/* Crackers */
+.success-alert-modal .success-crackers {
+    width: 150px;
+    height: 150px;
+    margin: -60px auto -34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-alert-modal .success-crackers img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Title */
+.success-alert-modal h4 {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+/* Subtitle */
+.success-alert-modal p {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 26px;
+}
+
+/* Button */
+.success-alert-modal .success-preview-btn {
+    background: linear-gradient(135deg, #e39a4e, #fb1b1b);
+    color: #fff;
+    border: none;
+    padding: 10px 36px;
+    border-radius: 230px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.success-alert-modal .success-preview-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
